@@ -3,11 +3,13 @@
 #include "CListCtrl_Sortable.h"
 #include "Resource.h"
 #include "mainDlg.h"
+#include "ThemeManager.h"
 
 #include <uxtheme.h>
 
 BEGIN_MESSAGE_MAP(CListCtrl_Sortable, CListCtrl_LabelTip)
     ON_NOTIFY_REFLECT_EX(LVN_COLUMNCLICK, OnHeaderClick)	// Column Click
+    ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomDraw)
 END_MESSAGE_MAP()
 
 namespace {
@@ -90,12 +92,60 @@ void CListCtrl_Sortable::PreSubclassWindow()
 {
     CListCtrl_LabelTip::PreSubclassWindow();
 
-    // Focus retangle is not painted properly without double-buffering
+    // Focus rectangle is not painted properly without double-buffering
     SetExtendedStyle(LVS_EX_DOUBLEBUFFER | GetExtendedStyle());
     SetExtendedStyle(GetExtendedStyle() | LVS_EX_FULLROWSELECT);
     SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP);
-    
-    SetWindowTheme(GetSafeHwnd(), L"Explorer", nullptr);
+
+    if (ThemeManager::Get().IsDark()) {
+        SetWindowTheme(GetSafeHwnd(), L"DarkMode_ItemsView", nullptr);
+        SetBkColor(ThemeManager::Get().GetColorWindow());
+        SetTextBkColor(ThemeManager::Get().GetColorWindow());
+        SetTextColor(ThemeManager::Get().GetColorText());
+        HWND hHeader = GetHeaderCtrl() ? GetHeaderCtrl()->GetSafeHwnd() : NULL;
+        if (hHeader) {
+            SetWindowTheme(hHeader, L"DarkMode_ItemsView", nullptr);
+        }
+    } else {
+        SetWindowTheme(GetSafeHwnd(), L"Explorer", nullptr);
+    }
+}
+
+void CListCtrl_Sortable::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
+    *pResult = CDRF_DODEFAULT;
+
+    if (!ThemeManager::Get().IsDark()) {
+        return;
+    }
+
+    switch (pLVCD->nmcd.dwDrawStage)
+    {
+    case CDDS_PREPAINT:
+        *pResult = CDRF_NOTIFYITEMDRAW;
+        break;
+
+    case CDDS_ITEMPREPAINT:
+    {
+        int nItem = static_cast<int>(pLVCD->nmcd.dwItemSpec);
+        bool bSelected = (GetItemState(nItem, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+
+        if (bSelected) {
+            pLVCD->clrText = RGB(255, 255, 255);
+            pLVCD->clrTextBk = ThemeManager::Get().GetColorSelection(); // #37373d
+            // Clear default highlight so system doesn't draw bright blue box
+            pLVCD->nmcd.uItemState &= ~CDIS_SELECTED;
+        } else {
+            pLVCD->clrText = ThemeManager::Get().GetColorText(); // #e0e0e0
+            // Subtle alternating zebra rows
+            pLVCD->clrTextBk = (nItem % 2 == 1) ? ThemeManager::Get().GetColorZebraAlt() : ThemeManager::Get().GetColorWindow();
+        }
+
+        *pResult = CDRF_NEWFONT;
+        break;
+    }
+    }
 }
 
 void CListCtrl_Sortable::ResetSortOrder()

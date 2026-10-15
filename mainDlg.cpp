@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1764,6 +1764,7 @@ CmainDlg::~CmainDlg(void)
 
 void CmainDlg::OnDestroy()
 {
+    UnregisterHotKey(m_hWnd, HOTKEY_ID_ANSWER);
     statistics.destroyTime = CTime::GetCurrentTime().GetTime();
     CBaseDialog::OnDestroy();
 }
@@ -1800,6 +1801,8 @@ BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
     ON_WM_DESTROY()
     ON_BN_CLICKED(IDOK, OnBnClickedOk)
     ON_BN_CLICKED(IDC_MAIN_MENU, OnBnClickedMenu)
+    ON_BN_CLICKED(IDC_MAIN_LANG, OnBnClickedLang)
+    ON_MESSAGE(WM_HOTKEY, OnHotKey)
     ON_MESSAGE(UM_CREATED, OnCreated)
     ON_MESSAGE(UM_UPDATEWINDOWTEXT, OnUpdateWindowText)
     ON_MESSAGE(UM_NOTIFYICON, onTrayNotify)
@@ -1890,6 +1893,91 @@ void CmainDlg::OnBnClickedMenu()
     m_ButtonMenu.ModifyStyle(BS_DEFPUSHBUTTON, BS_PUSHBUTTON);
     MainPopupMenu(true);
     TabFocusSet();
+}
+
+void CmainDlg::OnBnClickedLang()
+{
+    bool isRu = (accountSettings.language.CompareNoCase(_T("ru")) == 0) || 
+                (accountSettings.language.IsEmpty() && langPack.entryCount > 0);
+    SwitchLanguage(isRu ? _T("en") : _T("ru"));
+}
+
+void CmainDlg::SwitchLanguage(const CString& lang)
+{
+    accountSettings.language = lang;
+    accountSettings.SettingsSave();
+
+    if (lang.CompareNoCase(_T("en")) == 0) {
+        UnloadLangPackModule();
+    } else {
+        CString langFile = accountSettings.pathExe + _T("\\langpack_russian.txt");
+        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
+            langFile = accountSettings.pathExe + _T("\\langpack_ru.txt");
+        }
+        if (GetFileAttributes(langFile) != INVALID_FILE_ATTRIBUTES) {
+            LoadLangPack(langFile);
+        } else {
+            LoadLangPackModule();
+        }
+    }
+
+    UpdateLanguageUI();
+}
+
+void CmainDlg::UpdateLanguageUI()
+{
+    bool isRu = (accountSettings.language.CompareNoCase(_T("ru")) == 0) || 
+                (langPack.entryCount > 0);
+
+    if (m_btnLang.GetSafeHwnd()) {
+        m_btnLang.SetWindowText(isRu ? _T("RU") : _T("EN"));
+    }
+
+    TC_ITEM item;
+    item.mask = TCIF_TEXT;
+    item.pszText = Translate(_T("Phone"));
+    m_mainTab.SetItem(0, &item);
+    item.pszText = Translate(_T("Logs"));
+    m_mainTab.SetItem(1, &item);
+    item.pszText = Translate(_T("Contacts"));
+    m_mainTab.SetItem(2, &item);
+    m_mainTab.Invalidate();
+
+    TranslateDialog(m_hWnd);
+
+    if (pageDialer && pageDialer->m_hWnd) {
+        TranslateDialog(pageDialer->m_hWnd);
+        pageDialer->SetName();
+    }
+    if (pageCalls && pageCalls->m_hWnd) {
+        TranslateDialog(pageCalls->m_hWnd);
+    }
+    if (pageContacts && pageContacts->m_hWnd) {
+        TranslateDialog(pageContacts->m_hWnd);
+    }
+    if (messagesDlg && messagesDlg->m_hWnd) {
+        TranslateDialog(messagesDlg->m_hWnd);
+    }
+    if (settingsDlg && settingsDlg->m_hWnd) {
+        TranslateDialog(settingsDlg->m_hWnd);
+    }
+    if (accountDlg && accountDlg->m_hWnd) {
+        TranslateDialog(accountDlg->m_hWnd);
+    }
+
+    InitUI();
+}
+
+LRESULT CmainDlg::OnHotKey(WPARAM wParam, LPARAM lParam)
+{
+    if (wParam == HOTKEY_ID_ANSWER) {
+        if (ringinDlgs.GetCount() > 0) {
+            CommandCallAnswer();
+        } else if (pageDialer) {
+            pageDialer->OnBnClickedCall();
+        }
+    }
+    return 0;
 }
 
 CmainDlg::CmainDlg(CWnd * pParent /*=NULL*/)
@@ -2161,6 +2249,17 @@ BOOL CmainDlg::OnInitDialog()
     AutoMove(m_mainTab.m_hWnd, 0, 0, 100, 0);
     AutoMove(m_ButtonMenu.m_hWnd, 100, 0, 0, 0);
 
+    CRect menuRect;
+    m_ButtonMenu.GetWindowRect(&menuRect);
+    ScreenToClient(&menuRect);
+    CRect langRect = menuRect;
+    int langBtnW = MulDiv(24, dpiY, 96);
+    langRect.right = menuRect.left - 2;
+    langRect.left = langRect.right - langBtnW;
+    m_btnLang.Create(_T("RU"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, langRect, this, IDC_MAIN_LANG);
+    m_btnLang.SetFont(GetFont());
+    AutoMove(m_btnLang.m_hWnd, 100, 0, 0, 0);
+
     BYTE offset = tabRect.bottom - 1;
     CRect pageRect;
 
@@ -2210,6 +2309,15 @@ BOOL CmainDlg::OnInitDialog()
     OnAccountChanged(true);
 
     PostMessage(UM_CREATED);
+
+    if (accountSettings.answerHotKeyKey) {
+        BOOL registered = RegisterHotKey(m_hWnd, HOTKEY_ID_ANSWER, accountSettings.answerHotKeyMod, accountSettings.answerHotKeyKey);
+        if (!registered && (accountSettings.answerHotKeyMod & MOD_NOREPEAT)) {
+            RegisterHotKey(m_hWnd, HOTKEY_ID_ANSWER, accountSettings.answerHotKeyMod & ~MOD_NOREPEAT, accountSettings.answerHotKeyKey);
+        }
+    }
+
+    UpdateLanguageUI();
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }

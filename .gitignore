@@ -11,6 +11,11 @@
 *.tlog
 *.lastbuildstate
 *.log
+*.ipch/
+*.VC.db
+*.VC.opendb
+*.userosv
+*.sln.docstates
 
 # Папки выходных файлов сборки
 Release/
@@ -20,8 +25,16 @@ Win32/
 
 # Конфигурация с личными паролями и аккаунтами
 microsip.ini
+microsip.log
 *.user
 *.suo
+
+# Пользовательские базы данных звонков и контактов
+*.db
+*.db-wal
+*.db-shm
+*.bak
+*.tmp
 
 # Временные исходники-заглушки (созданные вручную)
 chkstk_ms.c

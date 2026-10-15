@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "ThemeManager.h"
+
 class CThemeDialog : public CDialog
 {
     // Construction
@@ -25,19 +27,16 @@ public:
     CThemeDialog(UINT nIDTemplate, CWnd* pParent = NULL);   // standard constructor
 
     // Overrides
-    // ClassWizard generated virtual function overrides
-    //{{AFX_VIRTUAL(CThemeDialog)
 protected:
-    //}}AFX_VIRTUAL
 
 protected:
-    bool m_bAllowDark = false;
+    bool m_bAllowDark = true;
     //{{AFX_MSG(CThemeDialog)
     virtual BOOL OnInitDialog();
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
     //}}AFX_MSG
-    void ApplyTheme();
+    virtual void ApplyTheme();
     BYTE lastDark;
     DECLARE_MESSAGE_MAP()
 

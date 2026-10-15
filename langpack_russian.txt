@@ -1,0 +1,100 @@
+Language Pack
+Language: Russian
+Last-Modified-Using: MicroSIP
+Locale: 0419
+
+[Phone]
+Телефон
+
+[Logs]
+Журнал
+
+[Contacts]
+Контакты
+
+[Call]
+Вызов
+
+[End]
+Сброс
+
+[Menu]
+Меню
+
+[Settings]
+Настройки
+
+[Account]
+Аккаунт
+
+[Exit]
+Выход
+
+[Answer]
+Ответить
+
+[Reject]
+Отклонить
+
+[Hold]
+Удержание
+
+[Resume]
+Возобновить
+
+[Transfer]
+Перевод
+
+[Conference]
+Конференция
+
+[Mute]
+Откл. звук
+
+[Unmute]
+Вкл. звук
+
+[Online]
+В сети
+
+[Offline]
+Не в сети
+
+[Away]
+Отошел
+
+[Busy]
+Занят
+
+[Connected]
+Подключено
+
+[Calling]
+Вызов...
+
+[Ringing]
+Звонок...
+
+[Incoming Call]
+Входящий вызов
+
+[Missed Call]
+Пропущенный вызов
+
+[Delete]
+Удалить
+
+[Edit]
+Изменить
+
+[Add]
+Добавить
+
+[Close]
+Закрыть
+
+[OK]
+ОК
+
+[Cancel]
+Отмена

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "settings.h"
 #include "Transfer.h"
 #include "langpack.h"
+#include "ThemeManager.h"
 
 static DWORD CALLBACK MEditStreamOutCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG* pcb)
 {
@@ -187,7 +188,41 @@ BOOL MessagesDlg::OnInitDialog()
     m_ButtonEnd.m_TextColor = RGB(255, 255, 255);
     m_ButtonEnd.EnableWindow(m_ButtonEnd.IsWindowEnabled());
 
+    ApplyTheme();
+
     return TRUE;
+}
+
+void MessagesDlg::ApplyTheme()
+{
+    CBaseDialog::ApplyTheme();
+
+    bool isDark = ThemeManager::Get().IsDark();
+    COLORREF bgCol = isDark ? ThemeManager::Get().GetColorInput() : RGB(255, 255, 255);
+    COLORREF textCol = isDark ? ThemeManager::Get().GetColorText() : RGB(0, 0, 0);
+
+    CRichEditCtrl* richEditList = (CRichEditCtrl*)GetDlgItem(IDC_MESSAGES_LIST);
+    if (richEditList && richEditList->GetSafeHwnd()) {
+        richEditList->SendMessage(EM_SETBKGNDCOLOR, 0, (LPARAM)bgCol);
+        CHARFORMAT2 cf;
+        ZeroMemory(&cf, sizeof(cf));
+        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.dwMask = CFM_COLOR;
+        cf.crTextColor = textCol;
+        richEditList->SendMessage(EM_SETCHARFORMAT, SCF_DEFAULT, (LPARAM)&cf);
+    }
+
+    CRichEditCtrl* richEdit = (CRichEditCtrl*)GetDlgItem(IDC_MESSAGE);
+    if (richEdit && richEdit->GetSafeHwnd()) {
+        richEdit->SendMessage(EM_SETBKGNDCOLOR, 0, (LPARAM)bgCol);
+        CHARFORMAT2 cf;
+        ZeroMemory(&cf, sizeof(cf));
+        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.dwMask = CFM_COLOR;
+        cf.crTextColor = textCol;
+        richEdit->SendMessage(EM_SETCHARFORMAT, SCF_DEFAULT, (LPARAM)&cf);
+        richEdit->SendMessage(EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cf);
+    }
 }
 
 void MessagesDlg::OnDestroy()
@@ -1303,7 +1338,7 @@ void MessagesDlg::AddMessage(MessagesContact* messagesContact, CString message, 
     COLORREF color;
     CString name;
     if (type == MSIP_MESSAGE_TYPE_LOCAL) {
-        color = RGB(0, 0, 0);
+        color = ThemeManager::Get().IsDark() ? ThemeManager::Get().GetColorText() : RGB(0, 0, 0);
         if (!accountSettings.account.displayName.IsEmpty()) {
             name = accountSettings.account.displayName;
         }
@@ -1356,7 +1391,11 @@ void MessagesDlg::AddMessage(MessagesContact* messagesContact, CString message, 
     richEditList->ReplaceSel(message + _T("\r\n"));
     cf.dwMask = CFM_BOLD | CFM_COLOR | CFM_SIZE;
 
-    cf.crTextColor = type == MSIP_MESSAGE_TYPE_SYSTEM ? RGB(131, 131, 131) : color;
+    COLORREF msgColor = type == MSIP_MESSAGE_TYPE_SYSTEM ? RGB(131, 131, 131) : color;
+    if (ThemeManager::Get().IsDark() && msgColor == RGB(0, 0, 0)) {
+        msgColor = ThemeManager::Get().GetColorText();
+    }
+    cf.crTextColor = msgColor;
     cf.dwEffects = 0;
 
     richEditList->SetSel(nBegin, -1);

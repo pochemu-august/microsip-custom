@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
@@ -427,6 +427,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ThemeDialog.cpp" />
+    <ClCompile Include="ThemeManager.cpp" />
     <ClCompile Include="Transfer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -495,6 +496,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThemeDialog.h" />
+    <ClInclude Include="ThemeManager.h" />
     <ClInclude Include="Transfer.h" />
     <ClInclude Include="Utils\StringConverter.h" />
   </ItemGroup>

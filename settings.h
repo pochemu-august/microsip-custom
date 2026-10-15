@@ -172,7 +172,14 @@ struct AccountSettings {
 
 	bool enableShortcuts;
 	bool shortcutsBottom;
+
+	int darkMode;
+	CString language;
+	UINT answerHotKeyKey;
+	UINT answerHotKeyMod;
+
 	AccountSettings();
+
 	void Init();
 	bool AccountLoad(int id, Account *account, CString filename = _T(""));
 	void AccountSave(int id, Account *account, CString filename = _T(""));

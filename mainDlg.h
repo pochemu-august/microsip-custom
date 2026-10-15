@@ -61,6 +61,7 @@ public:
 
     bool m_startMinimized;
     CButton m_ButtonMenu;
+    CButton m_btnLang;
     ImportDlg* importDlg = nullptr;
     ExportDlg* exportDlg = nullptr;
     SettingsDlg* settingsDlg = nullptr;
@@ -169,6 +170,9 @@ public:
     bool CommandCallReject();
     bool CommandCallPickup(CString number);
 
+    void SwitchLanguage(const CString& lang);
+    void UpdateLanguageUI();
+
     CTabCtrl m_mainTab;
     StatusBar m_bar;
 
@@ -225,6 +229,7 @@ protected:
     afx_msg LRESULT onCopyData(WPARAM, LPARAM);
     afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
     afx_msg LRESULT CreationComplete(WPARAM, LPARAM);
+    afx_msg LRESULT OnHotKey(WPARAM wParam, LPARAM lParam);
     DECLARE_MESSAGE_MAP()
 public:
     afx_msg LRESULT OnRestart(WPARAM, LPARAM);
@@ -237,6 +242,7 @@ public:
     afx_msg BOOL OnQueryEndSession();
     afx_msg void OnBnClickedOk();
     afx_msg void OnBnClickedMenu();
+    afx_msg void OnBnClickedLang();
     afx_msg void OnClose();
     afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);

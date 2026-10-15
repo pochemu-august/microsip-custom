@@ -511,13 +511,17 @@
 #define ID_CUSTOM_RANGE 40400
 #define IDC_SHORTCUT_RANGE 40500
 
+#define IDC_MAIN_LANG 1207
+#define HOTKEY_ID_ANSWER 1001
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        264
 #define _APS_NEXT_COMMAND_VALUE         32824
-#define _APS_NEXT_CONTROL_VALUE         1207
+#define _APS_NEXT_CONTROL_VALUE         1208
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+

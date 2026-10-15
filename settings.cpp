@@ -19,6 +19,7 @@
 #include "stdafx.h"
 #include "settings.h"
 #include "Crypto.h"
+#include "ThemeManager.h"
 
 #include <algorithm>
 #include <vector>
@@ -302,6 +303,10 @@ void AccountSettings::Init()
 
 AccountSettings::AccountSettings()
 {
+    darkMode = 2; // Auto
+    language = _T("");
+    answerHotKeyKey = VK_F2;
+    answerHotKeyMod = MOD_NOREPEAT;
 }
 
 void AccountSettings::AccountDelete(int id)
@@ -1083,6 +1088,27 @@ void AccountSettings::SettingsLoad(CString filename)
     GetPrivateProfileString(section, _T("lastCallHasVideo"), NULL, ptr, 256, filename);
     str.ReleaseBuffer();
     lastCallHasVideo = (str == _T("1"));
+
+    ptr = str.GetBuffer(256);
+    GetPrivateProfileString(section, _T("darkMode"), _T("2"), ptr, 256, filename);
+    str.ReleaseBuffer();
+    darkMode = _wtoi(str);
+    ThemeManager::Get().SetMode(darkMode);
+
+    ptr = language.GetBuffer(256);
+    GetPrivateProfileString(section, _T("language"), _T(""), ptr, 256, filename);
+    language.ReleaseBuffer();
+
+    ptr = str.GetBuffer(256);
+    GetPrivateProfileString(section, _T("answerHotKeyKey"), _T("113"), ptr, 256, filename);
+    str.ReleaseBuffer();
+    answerHotKeyKey = _wtoi(str);
+    if (!answerHotKeyKey) answerHotKeyKey = VK_F2;
+
+    ptr = str.GetBuffer(256);
+    GetPrivateProfileString(section, _T("answerHotKeyMod"), _T("16384"), ptr, 256, filename);
+    str.ReleaseBuffer();
+    answerHotKeyMod = _wtoi(str);
 }
 
 void AccountSettings::SettingsSave(CString filename)
@@ -1281,6 +1307,17 @@ void AccountSettings::SettingsSave(CString filename)
     WritePrivateProfileString(section, _T("shortcutsBottom"), shortcutsBottom ? _T("1") : _T("0"), filename);
     WritePrivateProfileString(section, _T("lastCallNumber"), lastCallNumber, filename);
     WritePrivateProfileString(section, _T("lastCallHasVideo"), lastCallHasVideo ? _T("1") : _T("0"), filename);
+
+    str.Format(_T("%d"), darkMode);
+    WritePrivateProfileString(section, _T("darkMode"), str, filename);
+
+    WritePrivateProfileString(section, _T("language"), language, filename);
+
+    str.Format(_T("%u"), answerHotKeyKey);
+    WritePrivateProfileString(section, _T("answerHotKeyKey"), str, filename);
+
+    str.Format(_T("%u"), answerHotKeyMod);
+    WritePrivateProfileString(section, _T("answerHotKeyMod"), str, filename);
 }
 
 void AccountSettings::GlobalSave(CString filename)
