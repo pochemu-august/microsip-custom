@@ -61,7 +61,6 @@ public:
 
     bool m_startMinimized;
     CButton m_ButtonMenu;
-    CButton m_btnLang;
     ImportDlg* importDlg = nullptr;
     ExportDlg* exportDlg = nullptr;
     SettingsDlg* settingsDlg = nullptr;
@@ -172,9 +171,11 @@ public:
 
     void SwitchLanguage(const CString& lang);
     void UpdateLanguageUI();
+    void RegisterAnswerHotKey();
 
-    CTabCtrl m_mainTab;
+    CClosableTabCtrl m_mainTab;
     StatusBar m_bar;
+
 
 private:
     HANDLE m_ipChangeHandle = nullptr;
@@ -242,8 +243,8 @@ public:
     afx_msg BOOL OnQueryEndSession();
     afx_msg void OnBnClickedOk();
     afx_msg void OnBnClickedMenu();
-    afx_msg void OnBnClickedLang();
     afx_msg void OnClose();
+
     afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);

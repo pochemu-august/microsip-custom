@@ -141,7 +141,10 @@ void ThemeManager::ApplyTheme(HWND hWnd, bool allowDark)
             LONG_PTR style = ::GetWindowLongPtr(hChild, GWL_STYLE);
             LONG_PTR btnType = (style & BS_TYPEMASK);
 
-            if (btnType == BS_AUTOCHECKBOX || btnType == BS_AUTORADIOBUTTON ||
+            if (style & BS_PUSHLIKE) {
+                ::SetWindowTheme(hChild, dark ? L"DarkMode_Explorer" : L"Explorer", nullptr);
+            }
+            else if (btnType == BS_AUTOCHECKBOX || btnType == BS_AUTORADIOBUTTON ||
                 btnType == BS_CHECKBOX || btnType == BS_RADIOBUTTON) {
                 if (dark) {
                     ::SetWindowTheme(hChild, L"wstr", L"wstr");

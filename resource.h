@@ -514,14 +514,19 @@
 #define IDC_MAIN_LANG 1207
 #define HOTKEY_ID_ANSWER 1001
 
+#define IDC_SETTINGS_THEME 1208
+#define IDC_SETTINGS_LANGUAGE 1209
+#define IDC_SETTINGS_HOTKEY_ANSWER 1210
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        264
 #define _APS_NEXT_COMMAND_VALUE         32824
-#define _APS_NEXT_CONTROL_VALUE         1208
+#define _APS_NEXT_CONTROL_VALUE         1211
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
 

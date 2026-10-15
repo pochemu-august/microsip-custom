@@ -18,6 +18,8 @@
 
 #include "stdafx.h"
 #include "ButtonEx.h"   
+#include "define.h"
+   
 
  // CButtonEx   
 IMPLEMENT_DYNAMIC(CButtonEx, CMFCButton)
@@ -37,6 +39,8 @@ BEGIN_MESSAGE_MAP(CButtonEx, CMFCButton)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+#include "ThemeManager.h"
+
 void CButtonEx::OnMouseMove(UINT nFlags, CPoint point)
 {
     CButton::OnMouseMove(nFlags, point);
@@ -44,15 +48,50 @@ void CButtonEx::OnMouseMove(UINT nFlags, CPoint point)
 
 BOOL CButtonEx::EnableWindow(BOOL bEnable)
 {
+    bool isDark = ThemeManager::Get().IsDark();
     if (bEnable) {
-        SetTextColor(m_TextColor);
-        SetFaceColor(m_FaceColor, FALSE);
+        if (isDark && m_FaceColor == _GLOBAL_DIALER_CALL_COLOR) {
+            SetTextColor(RGB(255, 255, 255));
+            SetFaceColor(RGB(38, 128, 64), FALSE);
+        } else {
+            SetTextColor(m_TextColor);
+            SetFaceColor(m_FaceColor, FALSE);
+        }
         Invalidate();
     }
     else {
-        SetTextColor(RGB(0, 0, 0));
-        SetFaceColor(RGB(222, 222, 222), FALSE);
+        if (isDark) {
+            SetTextColor(RGB(140, 140, 140));
+            SetFaceColor(RGB(43, 43, 43), FALSE);
+        } else {
+            SetTextColor(RGB(0, 0, 0));
+            SetFaceColor(RGB(222, 222, 222), FALSE);
+        }
         Invalidate();
     }
     return CMFCButton::EnableWindow(bEnable);
 }
+
+void CButtonEx::DrawItem(LPDRAWITEMSTRUCT lpDIS)
+{
+    bool isDark = ThemeManager::Get().IsDark();
+    if (!IsWindowEnabled()) {
+        if (isDark) {
+            m_clrFace = RGB(43, 43, 43); // #2b2b2b
+            m_clrRegular = RGB(140, 140, 140);
+        } else {
+            m_clrFace = RGB(222, 222, 222);
+            m_clrRegular = RGB(0, 0, 0);
+        }
+    } else {
+        if (isDark && m_FaceColor == _GLOBAL_DIALER_CALL_COLOR) {
+            m_clrFace = RGB(38, 128, 64); // Muted green for Call button in dark mode
+            m_clrRegular = RGB(255, 255, 255);
+        } else {
+            m_clrFace = m_FaceColor;
+            m_clrRegular = m_TextColor;
+        }
+    }
+    CMFCButton::DrawItem(lpDIS);
+}
+

@@ -68,25 +68,48 @@ void CButtonBottom::OnKillFocus(CWnd* pNewWnd)
 }
 
 
+#include "ThemeManager.h"
+
 void CButtonBottom::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 {
+	bool isDark = ThemeManager::Get().IsDark();
+	COLORREF clrBtn = isDark ? RGB(43, 43, 43) : m_clrButton; // #2b2b2b
+	COLORREF clrBtnHover = isDark ? RGB(55, 55, 61) : m_clrButtonHover; // #37373d
+	COLORREF clrBtnPushed = m_clrButtonPushed;
+	COLORREF clrText = isDark ? RGB(224, 224, 224) : m_clrButtonText;
+	COLORREF clrTextPushed = m_clrButtonTextPushed;
+
 	if (m_bCheckButton && m_bChecked) {
-		m_clrFace = m_clrButtonPushed;
-		m_clrRegular = m_clrButtonTextPushed;
+		m_clrFace = clrBtnPushed;
+		m_clrRegular = clrTextPushed;
 	}
 	else {
 		if (m_bPushed) {
-			m_clrFace = m_clrButtonPushed;
-			m_clrRegular = m_clrButtonTextPushed;
+			m_clrFace = clrBtnPushed;
+			m_clrRegular = clrTextPushed;
 		}
 		else if (m_bHover) {
-			m_clrFace = m_clrButtonHover;
-			m_clrRegular = m_clrButtonText;
+			m_clrFace = clrBtnHover;
+			m_clrRegular = clrText;
 		}
 		else {
-			m_clrFace = m_clrButton;
-			m_clrRegular = m_clrButtonText;
+			m_clrFace = clrBtn;
+			m_clrRegular = clrText;
 		}
 	}
 	CMFCButton::DrawItem(lpDIS);
+
+	if (isDark && lpDIS && lpDIS->hDC) {
+		CDC* pDC = CDC::FromHandle(lpDIS->hDC);
+		if (pDC) {
+			CRect rc = lpDIS->rcItem;
+			CPen pen(PS_SOLID, 1, RGB(63, 63, 63)); // #3f3f3f
+			CPen* pOldPen = pDC->SelectObject(&pen);
+			CBrush* pOldBrush = (CBrush*)pDC->SelectStockObject(NULL_BRUSH);
+			pDC->Rectangle(&rc);
+			pDC->SelectObject(pOldPen);
+			pDC->SelectObject(pOldBrush);
+		}
+	}
 }
+

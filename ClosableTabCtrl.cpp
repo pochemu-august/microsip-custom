@@ -2,6 +2,8 @@
 #include "mainDlg.h"
 #include "ClosableTabCtrl.h"
 #include "VisualStylesXP.h"
+#include "ThemeManager.h"
+
 
 
 // _WIN32_WINNT >= 0x0501 (XP only)
@@ -247,7 +249,8 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	int iPartId = TABP_TABITEM;
 	int iStateId = TIS_NORMAL;
 	bool bVistaHotTracked = false;
-	bool bVistaThemeActive = IsVistaThemeActive();
+	bool isDark = ThemeManager::Get().IsDark();
+	bool bVistaThemeActive = IsVistaThemeActive() && !isDark;
 	if (bVistaThemeActive)
 	{
 		// To determine if the current item is in 'hot tracking' mode, we need to evaluate
@@ -315,7 +318,24 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	// Following background clearing is needed for:
 	//	WinXP/Vista (when used without an application theme)
 	//	Vista (when used with an application theme but without a theme for the tab control)
-	if (   (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
+	if (isDark) {
+		CRect rectFill = rect;
+		rectFill.left = rect.left + 1;
+		rectFill.right = rect.right - 1;
+		rectFill.top = rect.top + (bSelected ? 1 : 3);
+		rectFill.bottom = rect.bottom;
+		COLORREF clref = bSelected ? ThemeManager::COLOR_SELECT_DARK : ThemeManager::COLOR_WINDOW_DARK;
+		pDC->FillSolidRect(rectFill, clref);
+
+		CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
+		CPen* pOldPen = pDC->SelectObject(&pen);
+		pDC->MoveTo(rectFill.left, rectFill.bottom);
+		pDC->LineTo(rectFill.left, rectFill.top);
+		pDC->LineTo(rectFill.right, rectFill.top);
+		pDC->LineTo(rectFill.right, rectFill.bottom);
+		pDC->SelectObject(pOldPen);
+	}
+	else if (   (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
 		|| (hTheme == NULL && bVistaThemeActive) ) {
 			CRect rectFill;
 			rectFill.left = rect.left+1;
@@ -335,6 +355,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 			}
 			pDC->FillSolidRect(rectFill, clref);
 	}
+
 
 	int iOldBkMode = pDC->SetBkMode(TRANSPARENT);
 
@@ -381,10 +402,13 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	}
 
 	COLORREF crOldColor = CLR_NONE;
-	if (tci.dwState & TCIS_HIGHLIGHTED)
+	if (isDark)
+		crOldColor = pDC->SetTextColor(bSelected ? RGB(255, 255, 255) : RGB(180, 180, 180));
+	else if (tci.dwState & TCIS_HIGHLIGHTED)
 		crOldColor = pDC->SetTextColor(RGB(192, 0, 0));
 	else if (bVistaHotTracked)
 		crOldColor = pDC->SetTextColor(GetSysColor(COLOR_BTNTEXT));
+
 
 	rect.top += bSelected ? 4 : 3;
 	// Vista: Tab control has troubles with determining the width of a tab if the
@@ -558,8 +582,15 @@ HBRUSH CClosableTabCtrl::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 // Vista: Can not be used to workaround the problems with owner drawn tab control
 BOOL CClosableTabCtrl::OnEraseBkgnd(CDC* pDC)
 {
+	if (ThemeManager::Get().IsDark()) {
+		CRect rc;
+		GetClientRect(&rc);
+		pDC->FillSolidRect(&rc, ThemeManager::COLOR_WINDOW_DARK);
+		return TRUE;
+	}
 	return CTabCtrl::OnEraseBkgnd(pDC);
 }
+
 
 BOOL CClosableTabCtrl::DeleteItem(int nItem)
 {

@@ -25,6 +25,8 @@
 #include "global.h"
 #include "Preview.h"
 #include "langpack.h"
+#include "ThemeManager.h"
+
 
 static CString defaultActionItems[] = {
 _T(""),
@@ -406,8 +408,45 @@ BOOL SettingsDlg::OnInitDialog()
         }
     }
 
+    // Theme ComboBox
+    combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_THEME);
+    if (combobox) {
+        combobox->AddString(Translate(_T("Light")));
+        combobox->AddString(Translate(_T("Dark")));
+        combobox->AddString(Translate(_T("Auto")));
+        int themeSel = accountSettings.darkMode;
+        if (themeSel < 0 || themeSel > 2) themeSel = 0;
+        combobox->SetCurSel(themeSel);
+    }
+
+    // Language ComboBox
+    combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE);
+    if (combobox) {
+        combobox->AddString(_T("English"));
+        combobox->AddString(_T("Русский"));
+        int langSel = 0;
+        if (accountSettings.language.CompareNoCase(_T("ru")) == 0 ||
+            (accountSettings.language.IsEmpty() && langPack.entryCount > 0)) {
+            langSel = 1;
+        }
+        combobox->SetCurSel(langSel);
+    }
+
+    // Answer Hotkey
+    CHotKeyCtrl* pHotKey = (CHotKeyCtrl*)GetDlgItem(IDC_SETTINGS_HOTKEY_ANSWER);
+    if (pHotKey) {
+        WORD wVK = accountSettings.answerHotKeyKey ? accountSettings.answerHotKeyKey : VK_F2;
+        WORD wMod = 0;
+        if (accountSettings.answerHotKeyMod & MOD_ALT)     wMod |= HOTKEYF_ALT;
+        if (accountSettings.answerHotKeyMod & MOD_CONTROL) wMod |= HOTKEYF_CONTROL;
+        if (accountSettings.answerHotKeyMod & MOD_SHIFT)   wMod |= HOTKEYF_SHIFT;
+        if (accountSettings.answerHotKeyMod & MOD_WIN)     wMod |= HOTKEYF_EXT;
+        pHotKey->SetHotKey(wVK, wMod);
+    }
+
     return TRUE;
 }
+
 
 void SettingsDlg::OnDestroy()
 {
@@ -656,7 +695,47 @@ LRESULT SettingsDlg::OnUpdateSettings(WPARAM wParam, LPARAM lParam)
 
     msip_startup_set(((CButton*)GetDlgItem(IDC_SETTINGS_STARTUP))->GetCheck());
 
+    // Theme
+    combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_THEME);
+    if (combobox) {
+        int themeSel = combobox->GetCurSel();
+        if (themeSel >= 0 && themeSel <= 2) {
+            accountSettings.darkMode = themeSel;
+            ThemeManager::Get().SetMode(themeSel);
+            ThemeManager::Get().NotifyThemeChanged();
+        }
+    }
+
+    // Language
+    combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE);
+    if (combobox) {
+        int langSel = combobox->GetCurSel();
+        CString newLang = (langSel == 1) ? _T("ru") : _T("en");
+        if (newLang.CompareNoCase(accountSettings.language) != 0) {
+            if (mainDlg) {
+                mainDlg->SwitchLanguage(newLang);
+            }
+        }
+    }
+
+    // Answer Hotkey
+    CHotKeyCtrl* pHotKey = (CHotKeyCtrl*)GetDlgItem(IDC_SETTINGS_HOTKEY_ANSWER);
+    if (pHotKey) {
+        WORD wVK = 0, wMod = 0;
+        pHotKey->GetHotKey(wVK, wMod);
+        accountSettings.answerHotKeyKey = wVK;
+        accountSettings.answerHotKeyMod = MOD_NOREPEAT;
+        if (wMod & HOTKEYF_ALT)     accountSettings.answerHotKeyMod |= MOD_ALT;
+        if (wMod & HOTKEYF_CONTROL) accountSettings.answerHotKeyMod |= MOD_CONTROL;
+        if (wMod & HOTKEYF_SHIFT)   accountSettings.answerHotKeyMod |= MOD_SHIFT;
+        if (wMod & HOTKEYF_EXT)     accountSettings.answerHotKeyMod |= MOD_WIN;
+        if (mainDlg) {
+            mainDlg->RegisterAnswerHotKey();
+        }
+    }
+
     accountSettings.SettingsSave();
+
 
     if (accountSettings.singleMode) {
         mainDlg->messagesDlg->OnClose();

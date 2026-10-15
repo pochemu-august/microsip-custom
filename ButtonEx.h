@@ -35,4 +35,5 @@ protected:
 public: 
 	void OnMouseMove(UINT nFlags, CPoint point);
 	BOOL EnableWindow(BOOL bEnable = TRUE);
+	void DrawItem(LPDRAWITEMSTRUCT lpDIS);
 };

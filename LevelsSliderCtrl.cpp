@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LevelsSliderCtrl.h"
 #include "const.h"
+#include "ThemeManager.h"
 
 BEGIN_MESSAGE_MAP(CLevelsSliderCtrl, CSliderCtrl)
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomDraw)
@@ -54,11 +55,17 @@ void CLevelsSliderCtrl::OnCustomDraw(NMHDR* pNotifyStruct, LRESULT* result)
                     rect.DeflateRect(2, 2);
                     selmin = (int)(((double)(selmin - min) / max * rect.Height()) + 0.5) + rect.top;
                     selmax = (int)(((double)(selmax - min) / max * rect.Height()) + 0.5) + rect.top;
+
+                    bool isDark = IsDark || ThemeManager::Get().IsDark();
+                    COLORREF clrTrackBg = isDark ? ThemeManager::COLOR_INPUT_DARK : GetSysColor(COLOR_WINDOW);
+                    COLORREF clrInactiveBg = isDark ? ThemeManager::COLOR_WINDOW_DARK : pDC->GetBkColor();
+
+
                     if (!IsActive) {
-                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), pDC->GetBkColor());
+                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), clrInactiveBg);
                     }
                     else {
-                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), !IsDark ? GetSysColor(COLOR_WINDOW) : RGB(0, 0, 0));
+                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), clrTrackBg);
                     }
                     pDC->FillSolidRect(CRect(rect.left, selmin, rect.right, selmax), hot ? RGB(255, 0, 0) : GetSysColor(COLOR_HIGHLIGHT));
                     pDC->ExcludeClipRect(rect);
@@ -73,17 +80,23 @@ void CLevelsSliderCtrl::OnCustomDraw(NMHDR* pNotifyStruct, LRESULT* result)
                     rect.DeflateRect(2, 2);
                     selmin = (int)(((double)(selmin - min) / max * rect.Width()) + 0.5) + rect.left;
                     selmax = (int)(((double)(selmax - min) / max * rect.Width()) + 0.5) + rect.left;
+
+                    bool isDark = IsDark || ThemeManager::Get().IsDark();
+                    COLORREF clrTrackBg = isDark ? ThemeManager::COLOR_INPUT_DARK : GetSysColor(COLOR_WINDOW);
+                    COLORREF clrInactiveBg = isDark ? ThemeManager::COLOR_WINDOW_DARK : pDC->GetBkColor();
+
                     if (!IsActive) {
-                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), pDC->GetBkColor());
+                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), clrInactiveBg);
                     }
                     else {
-                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), !IsDark ? GetSysColor(COLOR_WINDOW) : RGB(0, 0, 0));
+                        pDC->FillSolidRect(CRect(rect.left, rect.top, rect.right, rect.bottom), clrTrackBg);
                     }
                     pDC->FillSolidRect(CRect(selmin, rect.top, selmax, rect.bottom), hot ? RGB(255, 0, 0) : GetSysColor(COLOR_HIGHLIGHT));
                     pDC->ExcludeClipRect(rect);
                 }
             }
             *result = CDRF_DODEFAULT | CDRF_NOTIFYPOSTPAINT;
+
             break;
         }
         }
