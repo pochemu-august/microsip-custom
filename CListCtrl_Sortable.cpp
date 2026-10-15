@@ -10,7 +10,9 @@
 BEGIN_MESSAGE_MAP(CListCtrl_Sortable, CListCtrl_LabelTip)
     ON_NOTIFY_REFLECT_EX(LVN_COLUMNCLICK, OnHeaderClick)	// Column Click
     ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomDraw)
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
+
 
 namespace {
     bool IsThemeEnabled()
@@ -97,6 +99,9 @@ void CListCtrl_Sortable::PreSubclassWindow()
     SetExtendedStyle(GetExtendedStyle() | LVS_EX_FULLROWSELECT);
     SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP);
 
+    ShowScrollBar(SB_HORZ, FALSE);
+    ModifyStyle(WS_HSCROLL, 0);
+
     if (ThemeManager::Get().IsDark()) {
         SetWindowTheme(GetSafeHwnd(), L"DarkMode_ItemsView", nullptr);
         SetBkColor(ThemeManager::Get().GetColorWindow());
@@ -173,3 +178,14 @@ void CListCtrl_Sortable::SetSortColumn(int columnIndex, bool ascending)
         SetSortArrow(m_SortCol, m_Ascending);
     }
 }
+
+void CListCtrl_Sortable::OnSize(UINT nType, int cx, int cy)
+{
+    CListCtrl_LabelTip::OnSize(nType, cx, cy);
+    ShowScrollBar(SB_HORZ, FALSE);
+    ModifyStyle(WS_HSCROLL, 0);
+    if (ThemeManager::Get().IsDark()) {
+        SetWindowTheme(GetSafeHwnd(), L"DarkMode_ItemsView", NULL);
+    }
+}
+

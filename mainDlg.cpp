@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,8 +17,10 @@
  */
 
 #include "stdafx.h"
+#pragma execution_character_set("utf-8")
 
 #define THIS_FILENAME "mainDlg.cpp"
+
 
 #include "mainDlg.h"
 #include "microsip.h"
@@ -1908,6 +1910,9 @@ void CmainDlg::SwitchLanguage(const CString& lang)
             langFile = accountSettings.pathRoaming + _T("\\langpack_russian.txt");
         }
         if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
+            langFile = _T("langpack_russian.txt");
+        }
+        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
             langFile = accountSettings.pathExe + _T("\\langpack_ru.txt");
         }
         if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
@@ -1925,17 +1930,20 @@ void CmainDlg::SwitchLanguage(const CString& lang)
 
 void CmainDlg::UpdateLanguageUI()
 {
+    bool isRu = (accountSettings.language.CompareNoCase(_T("ru")) == 0) || (langPack.entryCount > 0);
+
     TC_ITEM item;
     item.mask = TCIF_TEXT;
-    item.pszText = Translate(_T("Phone"));
+    item.pszText = isRu ? _T("Телефон") : _T("Phone");
     m_mainTab.SetItem(0, &item);
-    item.pszText = Translate(_T("Logs"));
+    item.pszText = isRu ? _T("Журнал") : _T("Logs");
     m_mainTab.SetItem(1, &item);
-    item.pszText = Translate(_T("Contacts"));
+    item.pszText = isRu ? _T("Контакты") : _T("Contacts");
     m_mainTab.SetItem(2, &item);
     m_mainTab.Invalidate();
 
     TranslateDialog(m_hWnd);
+
 
     if (pageDialer && pageDialer->m_hWnd) {
         TranslateDialog(pageDialer->m_hWnd);
@@ -2224,7 +2232,9 @@ BOOL CmainDlg::OnInitDialog()
 
     CRect tabRect;
     m_mainTab.m_bCloseable = false;
+    m_mainTab.ModifyStyle(WS_BORDER, 0);
     m_mainTab.GetWindowRect(&tabRect);
+
     ScreenToClient(&tabRect);
     TC_ITEM tabItem;
     CRect lineRect;

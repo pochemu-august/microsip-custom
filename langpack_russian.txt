@@ -1,4 +1,4 @@
-Language Pack
+﻿Language Pack
 Language: Russian
 Last-Modified-Using: MicroSIP
 Locale: 0419

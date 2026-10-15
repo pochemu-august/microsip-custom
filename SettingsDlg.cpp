@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,9 @@
  */
 
 #include "stdafx.h"
+#pragma execution_character_set("utf-8")
 #include <afxshellmanager.h>
+
 
 #include "SettingsDlg.h"
 #include "mainDlg.h"
@@ -435,14 +437,20 @@ BOOL SettingsDlg::OnInitDialog()
     // Answer Hotkey
     CHotKeyCtrl* pHotKey = (CHotKeyCtrl*)GetDlgItem(IDC_SETTINGS_HOTKEY_ANSWER);
     if (pHotKey) {
-        WORD wVK = accountSettings.answerHotKeyKey ? accountSettings.answerHotKeyKey : VK_F2;
-        WORD wMod = 0;
-        if (accountSettings.answerHotKeyMod & MOD_ALT)     wMod |= HOTKEYF_ALT;
-        if (accountSettings.answerHotKeyMod & MOD_CONTROL) wMod |= HOTKEYF_CONTROL;
-        if (accountSettings.answerHotKeyMod & MOD_SHIFT)   wMod |= HOTKEYF_SHIFT;
-        if (accountSettings.answerHotKeyMod & MOD_WIN)     wMod |= HOTKEYF_EXT;
-        pHotKey->SetHotKey(wVK, wMod);
+        pHotKey->SetRules(HKCOMB_NONE, 0);
+        if (accountSettings.answerHotKeyKey) {
+            WORD wVK = accountSettings.answerHotKeyKey;
+            WORD wMod = 0;
+            if (accountSettings.answerHotKeyMod & MOD_ALT)     wMod |= HOTKEYF_ALT;
+            if (accountSettings.answerHotKeyMod & MOD_CONTROL) wMod |= HOTKEYF_CONTROL;
+            if (accountSettings.answerHotKeyMod & MOD_SHIFT)   wMod |= HOTKEYF_SHIFT;
+            if (accountSettings.answerHotKeyMod & MOD_WIN)     wMod |= HOTKEYF_EXT;
+            pHotKey->SetHotKey(wVK, wMod);
+        } else {
+            pHotKey->SetHotKey(0, 0);
+        }
     }
+
 
     return TRUE;
 }

@@ -101,12 +101,24 @@ void StatusBar::OnPaint()
 	for (int i = 0; i < count; i++) {
 		CRect itemRect;
 		GetItemRect(i, &itemRect);
+		itemRect.DeflateRect(4, 0);
+
+		HICON hIcon = (HICON)::SendMessage(m_hWnd, SB_GETICON, i, 0);
+		if (!hIcon) {
+			hIcon = GetStatusBarCtrl().GetIcon(i);
+		}
+		if (hIcon) {
+			int iconY = itemRect.top + (itemRect.Height() - 16) / 2;
+			::DrawIconEx(dc.m_hDC, itemRect.left, iconY, hIcon, 16, 16, 0, NULL, DI_NORMAL);
+			itemRect.left += 20;
+		}
+
 		CString text = GetPaneText(i);
 		if (!text.IsEmpty()) {
-			itemRect.DeflateRect(4, 0);
 			dc.DrawText(text, &itemRect, DT_SINGLELINE | DT_VCENTER | DT_LEFT);
 		}
 	}
+
 
 	if (pOldFont) {
 		dc.SelectObject(pOldFont);

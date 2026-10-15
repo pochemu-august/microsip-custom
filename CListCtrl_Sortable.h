@@ -11,7 +11,9 @@ class CListCtrl_Sortable : public CListCtrl_LabelTip
 
 	afx_msg BOOL OnHeaderClick(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	void PreSubclassWindow();
+
 
 public:
 	CListCtrl_Sortable()

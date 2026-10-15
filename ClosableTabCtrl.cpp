@@ -31,9 +31,11 @@ BEGIN_MESSAGE_MAP(CClosableTabCtrl, CTabCtrl)
 	ON_WM_CTLCOLOR_REFLECT()
 	ON_WM_CTLCOLOR()
 	ON_WM_ERASEBKGND()
+	ON_WM_PAINT()
 	ON_WM_MEASUREITEM()
 	ON_WM_MEASUREITEM_REFLECT()
 END_MESSAGE_MAP()
+
 
 CClosableTabCtrl::CClosableTabCtrl()
 {
@@ -403,11 +405,12 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 
 	COLORREF crOldColor = CLR_NONE;
 	if (isDark)
-		crOldColor = pDC->SetTextColor(bSelected ? RGB(255, 255, 255) : RGB(180, 180, 180));
+		crOldColor = pDC->SetTextColor(bSelected ? RGB(255, 255, 255) : RGB(190, 190, 190));
 	else if (tci.dwState & TCIS_HIGHLIGHTED)
 		crOldColor = pDC->SetTextColor(RGB(192, 0, 0));
 	else if (bVistaHotTracked)
 		crOldColor = pDC->SetTextColor(GetSysColor(COLOR_BTNTEXT));
+
 
 
 	rect.top += bSelected ? 4 : 3;
@@ -590,6 +593,42 @@ BOOL CClosableTabCtrl::OnEraseBkgnd(CDC* pDC)
 	}
 	return CTabCtrl::OnEraseBkgnd(pDC);
 }
+
+void CClosableTabCtrl::OnPaint()
+{
+	if (!ThemeManager::Get().IsDark()) {
+		Default();
+		return;
+	}
+
+	CPaintDC dc(this);
+	CRect clientRect;
+	GetClientRect(&clientRect);
+	dc.FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
+
+	int count = GetItemCount();
+	for (int i = 0; i < count; i++) {
+		CRect itemRect;
+		GetItemRect(i, &itemRect);
+		DRAWITEMSTRUCT dis = { 0 };
+		dis.CtlType = ODT_TAB;
+		dis.CtlID = GetDlgCtrlID();
+		dis.itemID = i;
+		dis.itemAction = ODA_DRAWENTIRE;
+		dis.itemState = (i == GetCurSel()) ? ODS_SELECTED : 0;
+		dis.hwndItem = m_hWnd;
+		dis.hDC = dc.m_hDC;
+		dis.rcItem = itemRect;
+		DrawItem(&dis);
+	}
+
+	CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
+	CPen* pOldPen = dc.SelectObject(&pen);
+	dc.MoveTo(clientRect.left, clientRect.bottom - 1);
+	dc.LineTo(clientRect.right, clientRect.bottom - 1);
+	dc.SelectObject(pOldPen);
+}
+
 
 
 BOOL CClosableTabCtrl::DeleteItem(int nItem)

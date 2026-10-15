@@ -156,7 +156,7 @@ void ThemeManager::ApplyTheme(HWND hWnd, bool allowDark)
                 ::SetWindowTheme(hChild, dark ? L"DarkMode_Explorer" : L"Explorer", nullptr);
             }
         }
-        else if (wcscmp(cls, L"Edit") == 0) {
+        else if (wcscmp(cls, L"Edit") == 0 || wcscmp(cls, L"msctls_hotkey32") == 0) {
             ::SetWindowTheme(hChild, dark ? L"DarkMode_CFD" : L"Explorer", nullptr);
         }
         else if (wcscmp(cls, L"ComboBox") == 0) {
@@ -171,7 +171,9 @@ void ThemeManager::ApplyTheme(HWND hWnd, bool allowDark)
                 ListView_SetBkColor(hChild, COLOR_WINDOW_DARK);
                 ListView_SetTextBkColor(hChild, COLOR_WINDOW_DARK);
                 ListView_SetTextColor(hChild, COLOR_TEXT_DARK);
+                ::ShowScrollBar(hChild, SB_HORZ, FALSE);
             } else {
+
                 ListView_SetBkColor(hChild, CLR_NONE);
                 ListView_SetTextBkColor(hChild, CLR_NONE);
                 ListView_SetTextColor(hChild, ::GetSysColor(COLOR_WINDOWTEXT));
@@ -223,7 +225,11 @@ HBRUSH ThemeManager::HandleCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
         if (pWnd && pWnd->m_hWnd) {
             ::GetClassNameW(pWnd->m_hWnd, cls, _countof(cls));
         }
-        if (wcscmp(cls, L"SysLink") == 0) {
+        if (wcscmp(cls, L"msctls_hotkey32") == 0) {
+            pDC->SetTextColor(COLOR_TEXT_DARK);
+            pDC->SetBkColor(COLOR_INPUT_DARK);
+            return m_hbrInput;
+        } else if (wcscmp(cls, L"SysLink") == 0) {
             pDC->SetTextColor(COLOR_LINK_DARK);
         } else {
             pDC->SetTextColor(COLOR_TEXT_DARK);
@@ -232,6 +238,7 @@ HBRUSH ThemeManager::HandleCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
         pDC->SetBkMode(TRANSPARENT);
         return m_hbrWindow;
     }
+
 
     case CTLCOLOR_BTN:
         pDC->SetTextColor(COLOR_TEXT_DARK);
