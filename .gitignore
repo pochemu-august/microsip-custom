@@ -1,0 +1,29 @@
+# Временные файлы сборки Visual Studio
+.vs/
+*.obj
+*.lib
+*.exp
+*.pdb
+*.idb
+*.pch
+*.res
+*.ilk
+*.tlog
+*.lastbuildstate
+*.log
+
+# Папки выходных файлов сборки
+Release/
+Debug/
+x64/
+Win32/
+
+# Конфигурация с личными паролями и аккаунтами
+microsip.ini
+*.user
+*.suo
+
+# Временные исходники-заглушки (созданные вручную)
+chkstk_ms.c
+stubs.c
+bcg729.c
