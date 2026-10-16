@@ -594,25 +594,21 @@ HBRUSH CClosableTabCtrl::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 // Vista: Can not be used to workaround the problems with owner drawn tab control
 BOOL CClosableTabCtrl::OnEraseBkgnd(CDC* pDC)
 {
-	if (ThemeManager::Get().IsDark()) {
-		CRect rc;
-		GetClientRect(&rc);
-		pDC->FillSolidRect(&rc, ThemeManager::COLOR_WINDOW_DARK);
-		return TRUE;
-	}
-	return CTabCtrl::OnEraseBkgnd(pDC);
+	COLORREF bgCol = ThemeManager::Get().IsDark() ? ThemeManager::COLOR_WINDOW_DARK : ::GetSysColor(COLOR_BTNFACE);
+	CRect rc;
+	GetClientRect(&rc);
+	pDC->FillSolidRect(&rc, bgCol);
+	return TRUE;
 }
 
 void CClosableTabCtrl::OnPaint()
 {
-	if (!ThemeManager::Get().IsDark()) {
-		Default();
-		return;
-	}
-
 	CPaintDC dc(this);
 	CRect clientRect;
 	GetClientRect(&clientRect);
+
+	COLORREF bgCol = ThemeManager::Get().IsDark() ? ThemeManager::COLOR_WINDOW_DARK : ::GetSysColor(COLOR_BTNFACE);
+	COLORREF borderCol = ThemeManager::Get().IsDark() ? ThemeManager::COLOR_BORDER_DARK : ::GetSysColor(COLOR_BTNSHADOW);
 
 	// Off-screen buffer: avoids flicker and guarantees the whole strip is
 	// repainted (no remnants of previous labels after a language switch).
@@ -628,7 +624,7 @@ void CClosableTabCtrl::OnPaint()
 	CFont* pFont = GetFont();
 	CFont* pOldFont = pFont ? pDC->SelectObject(pFont) : NULL;
 
-	pDC->FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
+	pDC->FillSolidRect(&clientRect, bgCol);
 
 	int count = GetItemCount();
 	int curSel = GetCurSel();
@@ -648,7 +644,7 @@ void CClosableTabCtrl::OnPaint()
 	}
 
 	if (clientRect.bottom > 0 && clientRect.right > clientRect.left) {
-		CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
+		CPen pen(PS_SOLID, 1, borderCol);
 		CPen* pOldPen = pDC->SelectObject(&pen);
 		pDC->MoveTo(clientRect.left, clientRect.bottom - 1);
 		pDC->LineTo(clientRect.right, clientRect.bottom - 1);

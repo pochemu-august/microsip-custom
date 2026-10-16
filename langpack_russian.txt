@@ -568,3 +568,21 @@ VP8
 
 [VP9]
 VP9
+
+[Decline]
+Отклонить
+
+[Answer]
+Ответить
+
+[Answer with Video]
+Ответить с видео
+
+[Ignore]
+Игнорировать
+
+[Incoming Call]
+Входящий вызов
+
+[close window to ignore call]
+закройте окно, чтобы игнорировать вызов

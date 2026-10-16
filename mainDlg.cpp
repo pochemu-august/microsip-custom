@@ -2446,25 +2446,35 @@ void CmainDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 
 void CmainDlg::OnPaint()
 {
-    if (ThemeManager::Get().IsDark()) {
-        CPaintDC dc(this);
-        CRect clientRect;
-        GetClientRect(&clientRect);
-        dc.FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
+    CPaintDC dc(this);
+    CRect clientRect;
+    GetClientRect(&clientRect);
 
-        if (m_mainTab.GetSafeHwnd()) {
-            CRect tabRect;
-            m_mainTab.GetWindowRect(&tabRect);
-            ScreenToClient(&tabRect);
-            int lineY = tabRect.bottom - 1;
-            CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
-            CPen* pOldPen = dc.SelectObject(&pen);
-            dc.MoveTo(clientRect.left, lineY);
-            dc.LineTo(clientRect.right, lineY);
-            dc.SelectObject(pOldPen);
-        }
-    } else {
-        Default();
+    COLORREF bgCol = ThemeManager::Get().IsDark() ? ThemeManager::COLOR_WINDOW_DARK : ::GetSysColor(COLOR_BTNFACE);
+    COLORREF borderCol = ThemeManager::Get().IsDark() ? ThemeManager::COLOR_BORDER_DARK : ::GetSysColor(COLOR_BTNSHADOW);
+
+    // Заливаем фон шапки
+    CRect headerRect = clientRect;
+    if (m_mainTab.GetSafeHwnd()) {
+        CRect tabRect;
+        m_mainTab.GetWindowRect(&tabRect);
+        ScreenToClient(&tabRect);
+        headerRect.bottom = tabRect.bottom;
+    }
+    dc.FillSolidRect(&headerRect, bgCol);
+
+    // Рисуем сплошную тонкую линию через всю ширину окна
+    if (m_mainTab.GetSafeHwnd()) {
+        CRect tabRect;
+        m_mainTab.GetWindowRect(&tabRect);
+        ScreenToClient(&tabRect);
+        int lineY = tabRect.bottom - 1;
+
+        CPen pen(PS_SOLID, 1, borderCol);
+        CPen* pOldPen = dc.SelectObject(&pen);
+        dc.MoveTo(0, lineY);
+        dc.LineTo(clientRect.right, lineY);
+        dc.SelectObject(pOldPen);
     }
 }
 
