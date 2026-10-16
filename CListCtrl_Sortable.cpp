@@ -116,10 +116,57 @@ void CListCtrl_Sortable::PreSubclassWindow()
     }
 }
 
+BOOL CListCtrl_Sortable::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+{
+    // The header control sends NM_CUSTOMDRAW to its parent, i.e. to this list view
+    // (not reflected through the dialog), so it has to be intercepted here.
+    NMHDR* pNMHDR = reinterpret_cast<NMHDR*>(lParam);
+    if (pNMHDR && pNMHDR->code == NM_CUSTOMDRAW) {
+        HWND hHeader = GetHeaderCtrl() ? GetHeaderCtrl()->GetSafeHwnd() : NULL;
+        if (hHeader && pNMHDR->hwndFrom == hHeader) {
+            if (OnHeaderCustomDraw(pNMHDR, pResult)) {
+                return TRUE;
+            }
+        }
+    }
+    return CListCtrl_LabelTip::OnNotify(wParam, lParam, pResult);
+}
+
+// Light header text (Name / Number / Time) on the dark header background.
+bool CListCtrl_Sortable::OnHeaderCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    HWND hHeader = GetHeaderCtrl() ? GetHeaderCtrl()->GetSafeHwnd() : NULL;
+    if (pNMHDR->hwndFrom == hHeader) {
+        LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+        if (pNMCD->dwDrawStage == CDDS_PREPAINT) {
+            *pResult = CDRF_NOTIFYITEMDRAW;
+            return true;
+        }
+        if (pNMCD->dwDrawStage == CDDS_ITEMPREPAINT) {
+            if (ThemeManager::Get().IsDark()) {
+                ::SetTextColor(pNMCD->hdc, RGB(220, 220, 220));
+                ::SetBkColor(pNMCD->hdc, ThemeManager::COLOR_WINDOW_DARK);
+                *pResult = CDRF_NEWFONT;
+                return true;
+            }
+            *pResult = CDRF_DODEFAULT;
+            return true;
+        }
+    }
+    return false;
+}
+
 void CListCtrl_Sortable::OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
 {
     NMLVCUSTOMDRAW* pLVCD = reinterpret_cast<NMLVCUSTOMDRAW*>(pNMHDR);
     *pResult = CDRF_DODEFAULT;
+
+    // Header notifications are handled in OnHeaderCustomDraw
+    HWND hHeader = GetHeaderCtrl() ? GetHeaderCtrl()->GetSafeHwnd() : NULL;
+    if (pNMHDR->hwndFrom == hHeader) {
+        OnHeaderCustomDraw(pNMHDR, pResult);
+        return;
+    }
 
     if (!ThemeManager::Get().IsDark()) {
         return;

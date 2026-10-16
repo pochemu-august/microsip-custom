@@ -210,9 +210,23 @@ HBRUSH ThemeManager::HandleCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
     switch (nCtlColor)
     {
     case CTLCOLOR_EDIT:
+    {
+        // msctls_hotkey32 (Answer Key) requests its colors via WM_CTLCOLOREDIT
+        // and fills its background with the returned brush.
+        wchar_t cls[64] = { 0 };
+        if (pWnd && pWnd->m_hWnd) {
+            ::GetClassNameW(pWnd->m_hWnd, cls, _countof(cls));
+        }
+        if (wcscmp(cls, L"msctls_hotkey32") == 0) {
+            pDC->SetTextColor(COLOR_TEXT_DARK);   // #e0e0e0
+            pDC->SetBkColor(COLOR_INPUT_DARK);    // #2b2b2b
+            pDC->SetBkMode(OPAQUE);
+            return m_hbrInput;
+        }
         pDC->SetTextColor(COLOR_TEXT_DARK);
         pDC->SetBkColor(COLOR_INPUT_DARK);
         return m_hbrInput;
+    }
 
     case CTLCOLOR_LISTBOX:
         pDC->SetTextColor(COLOR_TEXT_DARK);

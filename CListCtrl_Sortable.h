@@ -13,6 +13,8 @@ class CListCtrl_Sortable : public CListCtrl_LabelTip
 	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	void PreSubclassWindow();
+	virtual BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
+	bool OnHeaderCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 
 
 public:

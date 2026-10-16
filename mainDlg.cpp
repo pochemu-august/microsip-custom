@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1902,25 +1902,28 @@ void CmainDlg::SwitchLanguage(const CString& lang)
     accountSettings.language = lang;
     accountSettings.SettingsSave();
 
-    if (lang.CompareNoCase(_T("en")) == 0) {
-        UnloadLangPackModule();
-    } else {
-        CString langFile = accountSettings.pathExe + _T("\\langpack_russian.txt");
-        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
-            langFile = accountSettings.pathRoaming + _T("\\langpack_russian.txt");
+    // LoadLangPack() appends to the global table, so always start from a clean state.
+    UnloadLangPackModule();
+
+    if (lang.CompareNoCase(_T("en")) != 0) {
+        const CString candidates[] = {
+            accountSettings.pathExe + _T("\\langpack_russian.txt"),
+            accountSettings.pathRoaming + _T("\\langpack_russian.txt"),
+            _T("langpack_russian.txt"),
+            accountSettings.pathExe + _T("\\langpack_ru.txt"),
+            accountSettings.pathRoaming + _T("\\langpack_ru.txt"),
+        };
+        bool loaded = false;
+        for (const CString& langFile : candidates) {
+            if (GetFileAttributes(langFile) != INVALID_FILE_ATTRIBUTES) {
+                if (LoadLangPack(langFile) == 0) {
+                    loaded = true;
+                    break;
+                }
+                UnloadLangPackModule();
+            }
         }
-        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
-            langFile = _T("langpack_russian.txt");
-        }
-        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
-            langFile = accountSettings.pathExe + _T("\\langpack_ru.txt");
-        }
-        if (GetFileAttributes(langFile) == INVALID_FILE_ATTRIBUTES) {
-            langFile = accountSettings.pathRoaming + _T("\\langpack_ru.txt");
-        }
-        if (GetFileAttributes(langFile) != INVALID_FILE_ATTRIBUTES) {
-            LoadLangPack(langFile);
-        } else {
+        if (!loaded) {
             LoadLangPackModule();
         }
     }
@@ -1932,19 +1935,76 @@ void CmainDlg::UpdateLanguageUI()
 {
     bool isRu = (accountSettings.language.CompareNoCase(_T("ru")) == 0) || (langPack.entryCount > 0);
 
-    TC_ITEM item;
-    item.mask = TCIF_TEXT;
-    item.pszText = isRu ? _T("Телефон") : _T("Phone");
-    m_mainTab.SetItem(0, &item);
-    item.pszText = isRu ? _T("Журнал") : _T("Logs");
-    m_mainTab.SetItem(1, &item);
-    item.pszText = isRu ? _T("Контакты") : _T("Contacts");
-    m_mainTab.SetItem(2, &item);
-    m_mainTab.Invalidate();
+    if (m_mainTab.GetSafeHwnd()) {
+        // CTabCtrl does not re-measure items on SetItem(), so the tabs are rebuilt.
+        // Each tab's lParam holds the page pointer and must be preserved.
+        int currentTab = m_mainTab.GetCurSel();
+        int count = m_mainTab.GetItemCount();
+        CArray<LPARAM> params;
+        CStringArray texts;
+        for (int i = 0; i < count; i++) {
+            TCHAR buf[256] = { 0 };
+            TC_ITEM tci = { 0 };
+            tci.mask = TCIF_PARAM | TCIF_TEXT;
+            tci.pszText = buf;
+            tci.cchTextMax = _countof(buf);
+            m_mainTab.GetItem(i, &tci);
+            params.Add(tci.lParam);
+            texts.Add(buf);
+        }
+
+        static const LPCTSTR labelsEn[] = { _T("Phone"), _T("Logs"), _T("Contacts") };
+        static const LPCTSTR labelsRu[] = { _T("Телефон"), _T("Журнал"), _T("Контакты") };
+        for (int i = 0; i < count && i < _countof(labelsEn); i++) {
+            texts[i] = isRu ? labelsRu[i] : labelsEn[i];
+        }
+
+        m_mainTab.SetRedraw(FALSE);
+        m_mainTab.DeleteAllItems();
+        for (int i = 0; i < count; i++) {
+            TC_ITEM tci = { 0 };
+            tci.mask = TCIF_TEXT | TCIF_PARAM;
+            tci.pszText = (LPTSTR)(LPCTSTR)texts[i];
+            tci.lParam = params[i];
+            m_mainTab.InsertItem(i, &tci);
+        }
+
+        // Owner-drawn tabs use a fixed item size: make sure the longest label fits.
+        if (count > 0) {
+            CRect rcMap(0, 0, _GLOBAL_TAB_WIDTH, 5);
+            MapDialogRect(&rcMap);
+            CRect rcWnd;
+            m_mainTab.GetWindowRect(&rcWnd);
+            int itemHeight = rcWnd.Height() - rcMap.bottom;
+            int itemWidth = rcMap.right;
+            CClientDC dc(&m_mainTab);
+            CFont* pFont = m_mainTab.GetFont();
+            CFont* pOldFont = pFont ? dc.SelectObject(pFont) : NULL;
+            for (int i = 0; i < count; i++) {
+                int need = dc.GetTextExtent(texts[i]).cx + 16;
+                if (need > itemWidth) itemWidth = need;
+            }
+            if (pOldFont) dc.SelectObject(pOldFont);
+            CRect rcClient;
+            m_mainTab.GetClientRect(&rcClient);
+            if (itemWidth * count > rcClient.Width() && rcClient.Width() > 0) {
+                itemWidth = rcClient.Width() / count;
+            }
+            m_mainTab.SetItemSize(CSize(itemWidth, itemHeight));
+        }
+
+        if (currentTab >= 0 && currentTab < count) {
+            m_mainTab.SetCurSel(currentTab);
+        }
+        m_tabPrev = m_mainTab.GetCurSel();
+        m_mainTab.SetRedraw(TRUE);
+        m_mainTab.Invalidate();
+        m_mainTab.UpdateWindow();
+    }
 
     TranslateDialog(m_hWnd);
 
-
+    // Translate every child/owned window that may already exist.
     if (pageDialer && pageDialer->m_hWnd) {
         TranslateDialog(pageDialer->m_hWnd);
         pageDialer->SetName();

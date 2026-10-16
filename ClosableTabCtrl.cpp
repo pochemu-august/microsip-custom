@@ -223,6 +223,34 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	CRect rcFullItem(lpDIS->rcItem);
 	bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
 
+	// Dark theme: fully custom rendering (no system 3D frame, no theme parts).
+	// The whole item rect is repainted so text from a previous (longer/shorter)
+	// label never remains on screen.
+	if (ThemeManager::Get().IsDark()) {
+		CDC& dc = *pDC;
+		dc.FillSolidRect(&lpDIS->rcItem, bSelected ? ThemeManager::COLOR_SELECT_DARK : ThemeManager::COLOR_WINDOW_DARK);
+
+		CRect rcText(lpDIS->rcItem);
+		rcText.DeflateRect(4, 0);
+
+		CImageList *pimlDark = GetImageList();
+		if (tci.iImage >= 0 && pimlDark && pimlDark->m_hImageList) {
+			IMAGEINFO ii;
+			if (pimlDark->GetImageInfo(tci.iImage, &ii)) {
+				int imgH = ii.rcImage.bottom - ii.rcImage.top;
+				pimlDark->Draw(&dc, tci.iImage, CPoint(rcText.left, rcText.top + (rcText.Height() - imgH) / 2), ILD_TRANSPARENT);
+				rcText.left += (ii.rcImage.right - ii.rcImage.left) + 2;
+			}
+		}
+
+		int iOldBkModeDark = dc.SetBkMode(TRANSPARENT);
+		COLORREF crOldDark = dc.SetTextColor(bSelected ? RGB(255, 255, 255) : RGB(200, 200, 200));
+		dc.DrawText(szLabel, -1, &rcText, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+		dc.SetTextColor(crOldDark);
+		dc.SetBkMode(iOldBkModeDark);
+		return;
+	}
+
 	///////////////////////////////////////////////////////////////////////////////////////
 	// Adding support for XP Styles (Vista Themes) for owner drawn tab controls simply
 	// does *not* work under Vista. Maybe it works under XP (did not try), but that is
@@ -320,24 +348,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	// Following background clearing is needed for:
 	//	WinXP/Vista (when used without an application theme)
 	//	Vista (when used with an application theme but without a theme for the tab control)
-	if (isDark) {
-		CRect rectFill = rect;
-		rectFill.left = rect.left + 1;
-		rectFill.right = rect.right - 1;
-		rectFill.top = rect.top + (bSelected ? 1 : 3);
-		rectFill.bottom = rect.bottom;
-		COLORREF clref = bSelected ? ThemeManager::COLOR_SELECT_DARK : ThemeManager::COLOR_WINDOW_DARK;
-		pDC->FillSolidRect(rectFill, clref);
-
-		CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
-		CPen* pOldPen = pDC->SelectObject(&pen);
-		pDC->MoveTo(rectFill.left, rectFill.bottom);
-		pDC->LineTo(rectFill.left, rectFill.top);
-		pDC->LineTo(rectFill.right, rectFill.top);
-		pDC->LineTo(rectFill.right, rectFill.bottom);
-		pDC->SelectObject(pOldPen);
-	}
-	else if (   (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
+	if (   (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
 		|| (hTheme == NULL && bVistaThemeActive) ) {
 			CRect rectFill;
 			rectFill.left = rect.left+1;
@@ -404,9 +415,7 @@ void CClosableTabCtrl::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	}
 
 	COLORREF crOldColor = CLR_NONE;
-	if (isDark)
-		crOldColor = pDC->SetTextColor(bSelected ? RGB(255, 255, 255) : RGB(190, 190, 190));
-	else if (tci.dwState & TCIS_HIGHLIGHTED)
+	if (tci.dwState & TCIS_HIGHLIGHTED)
 		crOldColor = pDC->SetTextColor(RGB(192, 0, 0));
 	else if (bVistaHotTracked)
 		crOldColor = pDC->SetTextColor(GetSysColor(COLOR_BTNTEXT));
@@ -604,9 +613,25 @@ void CClosableTabCtrl::OnPaint()
 	CPaintDC dc(this);
 	CRect clientRect;
 	GetClientRect(&clientRect);
-	dc.FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
+
+	// Off-screen buffer: avoids flicker and guarantees the whole strip is
+	// repainted (no remnants of previous labels after a language switch).
+	CDC memDC;
+	CBitmap bmp;
+	bool buffered = memDC.CreateCompatibleDC(&dc)
+		&& bmp.CreateCompatibleBitmap(&dc, clientRect.Width(), clientRect.Height());
+	CDC* pDC = buffered ? &memDC : &dc;
+	CBitmap* pOldBmp = buffered ? memDC.SelectObject(&bmp) : NULL;
+
+	// A raw CPaintDC carries the stock System font; select the control font
+	// so labels are drawn with the same metrics the tab control uses.
+	CFont* pFont = GetFont();
+	CFont* pOldFont = pFont ? pDC->SelectObject(pFont) : NULL;
+
+	pDC->FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
 
 	int count = GetItemCount();
+	int curSel = GetCurSel();
 	for (int i = 0; i < count; i++) {
 		CRect itemRect;
 		GetItemRect(i, &itemRect);
@@ -615,18 +640,26 @@ void CClosableTabCtrl::OnPaint()
 		dis.CtlID = GetDlgCtrlID();
 		dis.itemID = i;
 		dis.itemAction = ODA_DRAWENTIRE;
-		dis.itemState = (i == GetCurSel()) ? ODS_SELECTED : 0;
+		dis.itemState = (i == curSel) ? ODS_SELECTED : 0;
 		dis.hwndItem = m_hWnd;
-		dis.hDC = dc.m_hDC;
+		dis.hDC = pDC->m_hDC;
 		dis.rcItem = itemRect;
 		DrawItem(&dis);
 	}
 
 	CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
-	CPen* pOldPen = dc.SelectObject(&pen);
-	dc.MoveTo(clientRect.left, clientRect.bottom - 1);
-	dc.LineTo(clientRect.right, clientRect.bottom - 1);
-	dc.SelectObject(pOldPen);
+	CPen* pOldPen = pDC->SelectObject(&pen);
+	pDC->MoveTo(clientRect.left, clientRect.bottom - 1);
+	pDC->LineTo(clientRect.right, clientRect.bottom - 1);
+	pDC->SelectObject(pOldPen);
+
+	if (pOldFont)
+		pDC->SelectObject(pOldFont);
+
+	if (buffered) {
+		dc.BitBlt(0, 0, clientRect.Width(), clientRect.Height(), &memDC, 0, 0, SRCCOPY);
+		memDC.SelectObject(pOldBmp);
+	}
 }
 
 

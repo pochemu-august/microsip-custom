@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -86,8 +86,6 @@ BOOL SettingsDlg::OnInitDialog()
 
     aaOptionsDlg = NULL;
     featureCodesDlg = NULL;
-
-    TranslateDialog(this->m_hWnd);
 
     GetDlgItem(IDC_SETTINGS_RINGTONE)->SetWindowText(accountSettings.ringtone);
     ((CSliderCtrl*)GetDlgItem(IDC_SETTINGS_VOLUME_RING))->SetRange(0, 100);
@@ -438,19 +436,30 @@ BOOL SettingsDlg::OnInitDialog()
     CHotKeyCtrl* pHotKey = (CHotKeyCtrl*)GetDlgItem(IDC_SETTINGS_HOTKEY_ANSWER);
     if (pHotKey) {
         pHotKey->SetRules(HKCOMB_NONE, 0);
-        if (accountSettings.answerHotKeyKey) {
-            WORD wVK = accountSettings.answerHotKeyKey;
+        WORD wVK = (WORD)accountSettings.answerHotKeyKey;
+        if (wVK) {
             WORD wMod = 0;
             if (accountSettings.answerHotKeyMod & MOD_ALT)     wMod |= HOTKEYF_ALT;
             if (accountSettings.answerHotKeyMod & MOD_CONTROL) wMod |= HOTKEYF_CONTROL;
             if (accountSettings.answerHotKeyMod & MOD_SHIFT)   wMod |= HOTKEYF_SHIFT;
-            if (accountSettings.answerHotKeyMod & MOD_WIN)     wMod |= HOTKEYF_EXT;
+            // HOTKEYF_EXT marks an extended-scancode key (it is NOT the Win modifier);
+            // set it only for real extended keys so the control shows the proper name.
+            switch (wVK) {
+            case VK_INSERT: case VK_DELETE: case VK_HOME: case VK_END:
+            case VK_PRIOR: case VK_NEXT: case VK_LEFT: case VK_RIGHT:
+            case VK_UP: case VK_DOWN: case VK_DIVIDE: case VK_NUMLOCK:
+                wMod |= HOTKEYF_EXT;
+                break;
+            }
             pHotKey->SetHotKey(wVK, wMod);
         } else {
-            pHotKey->SetHotKey(0, 0);
+            pHotKey->SetHotKey(0, 0); // displays "None"
         }
     }
 
+    // Translate all static labels, check boxes, group boxes and buttons once
+    // every control has been initialized (combobox items use Translate()).
+    TranslateDialog(m_hWnd);
 
     return TRUE;
 }
@@ -736,7 +745,7 @@ LRESULT SettingsDlg::OnUpdateSettings(WPARAM wParam, LPARAM lParam)
         if (wMod & HOTKEYF_ALT)     accountSettings.answerHotKeyMod |= MOD_ALT;
         if (wMod & HOTKEYF_CONTROL) accountSettings.answerHotKeyMod |= MOD_CONTROL;
         if (wMod & HOTKEYF_SHIFT)   accountSettings.answerHotKeyMod |= MOD_SHIFT;
-        if (wMod & HOTKEYF_EXT)     accountSettings.answerHotKeyMod |= MOD_WIN;
+        // HOTKEYF_EXT is an extended-key flag, not a modifier: intentionally ignored.
         if (mainDlg) {
             mainDlg->RegisterAnswerHotKey();
         }

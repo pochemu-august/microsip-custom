@@ -1103,7 +1103,8 @@ void AccountSettings::SettingsLoad(CString filename)
     GetPrivateProfileString(section, _T("answerHotKeyKey"), _T("113"), ptr, 256, filename);
     str.ReleaseBuffer();
     answerHotKeyKey = _wtoi(str);
-    if (!answerHotKeyKey) answerHotKeyKey = VK_F2;
+    // Missing key -> default "113" (VK_F2) on first run; an explicit 0 means "None".
+    if (answerHotKeyKey > 0xFE) answerHotKeyKey = VK_F2;
 
     ptr = str.GetBuffer(256);
     GetPrivateProfileString(section, _T("answerHotKeyMod"), _T("16384"), ptr, 256, filename);

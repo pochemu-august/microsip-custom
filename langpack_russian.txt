@@ -98,3 +98,456 @@ Locale: 0419
 
 [Cancel]
 Отмена
+
+[Save]
+Сохранить
+
+[Theme]
+Тема
+
+[Language]
+Язык
+
+[Answer Key]
+Клавиша ответа
+
+[Single Call Mode]
+Режим одиночного вызова
+
+[Ringtone]
+Мелодия звонка
+
+[Ringtone Volume]
+Громкость звонка
+
+[Ring Device]
+Устройство вызова
+
+[Speaker]
+Динамики
+
+[Microphone]
+Микрофон
+
+[Microphone Amplification]
+Усиление микрофона
+
+[Software Level Adjustment]
+Программная регулировка уровня
+
+[Available Codecs]
+Доступные кодеки
+
+[Enabled Codecs]
+Используемые кодеки
+
+[Use Space key to enable selected codec]
+Нажмите Пробел для включения кодека
+
+[Use Delele key to disable selected codec]
+Нажмите Delete для отключения кодека
+
+[Run at System Startup]
+Автозагрузка при старте Windows
+
+[Directory of Users]
+Справочник пользователей
+
+[Call Recording]
+Запись разговоров
+
+[Light]
+Светлая
+
+[Dark]
+Тёмная
+
+[Auto]
+Авто
+
+[Daily]
+Ежедневно
+
+[Weekly]
+Еженедельно
+
+[Monthly]
+Ежемесячно
+
+[Quarterly]
+Ежеквартально
+
+[Never]
+Никогда
+
+[Check for Updates]
+Проверка обновлений
+
+[Handle Media Buttons]
+Обработка медиа клавиш
+
+[Headset Support]
+Поддержка гарнитуры
+
+[Sound Events]
+Звуковые сигналы
+
+[Enable Log File]
+Вести журнал отладки
+
+[Bring to Front on Incoming Call]
+Поверх всех окон при входящем
+
+[Enable Local Account]
+Включить локальный аккаунт
+
+[Random Popup Position]
+Случайная позиция окна
+
+[Call Waiting]
+Ожидание вызова
+
+[Disable Messaging]
+Отключить сообщения
+
+[Multi Monitor Support]
+Поддержка нескольких мониторов
+
+[Handle IP changes]
+Отслеживать смену IP
+
+[Disable name lookup in directory]
+Не искать имя в справочнике
+
+[Default List Action]
+Действие по умолчанию
+
+[DTMF Method]
+Метод DTMF
+
+[Auto Answer]
+Автоответ
+
+[Call Forwarding]
+Переадресация вызова
+
+[sec]
+сек
+
+[Feature Codes]
+Сервисные коды
+
+[Deny Incoming]
+Запрет входящих
+
+[Source Port]
+Порт источника
+
+[rport]
+rport
+
+[RTP Ports]
+Порты RTP
+
+[Nameserver]
+DNS-сервер
+
+[DNS SRV]
+DNS SRV
+
+[STUN Server]
+STUN сервер
+
+[Disable Video]
+Отключить видео
+
+[Camera]
+Камера
+
+[Video Codec]
+Видео кодек
+
+[Video Bitrate]
+Битрейт видео
+
+[Force Codec for Incoming]
+Принудительный кодек для входящих
+
+[In-band]
+Внутриполосный
+
+[Control Button]
+Кнопка управления
+
+[SIP Header]
+SIP-заголовок
+
+[All Calls]
+Все вызовы
+
+[Different User]
+Другой пользователь
+
+[Different Domain]
+Другой домен
+
+[Different User or Domain]
+Другой пользователь или домен
+
+[Different Remote Domain]
+Другой удаленный домен
+
+[Default]
+По умолчанию
+
+[No]
+Нет
+
+[Account Name]
+Название аккаунта
+
+[SIP Server]
+SIP-сервер
+
+[SIP Proxy]
+SIP-прокси
+
+[Username]
+Имя пользователя
+
+[Domain]
+Домен
+
+[Login]
+Логин
+
+[Password]
+Пароль
+
+[Display Name]
+Отображаемое имя
+
+[Voicemail Number]
+Номер голосовой почты
+
+[Dialing Prefix]
+Префикс набора
+
+[Dial Plan]
+План набора
+
+[Hide Caller ID]
+Скрыть номер
+
+[Media Encryption]
+Шифрование медиа
+
+[Transport]
+Транспорт
+
+[Public Address]
+Внешний адрес
+
+[Register Refresh]
+Интервал регистрации
+
+[Keep-Alive]
+Keep-Alive
+
+[Publish Presence]
+Публиковать статус
+
+[Allow IP Rewrite]
+Разрешить перезапись IP
+
+[ICE]
+ICE
+
+[Disable Session Timers]
+Отключить таймеры сессий
+
+[display password]
+показать пароль
+
+[Make Active]
+Сделать активным
+
+[Edit Account]
+Редактировать аккаунт
+
+[Edit Local Account]
+Редактировать локальный аккаунт
+
+[Add Account...]
+Добавить аккаунт...
+
+[Contact]
+Контакт
+
+[Name]
+Имя
+
+[Number]
+Номер
+
+[Presence Subscription]
+Подписка на статус
+
+[Starred]
+Избранное
+
+[First Name]
+Имя
+
+[Last Name]
+Фамилия
+
+[Phone Number]
+Номер телефона
+
+[Mobile Number]
+Мобильный номер
+
+[E-mail Address]
+E-mail адрес
+
+[Address]
+Адрес
+
+[City]
+Город
+
+[State]
+Область/Штат
+
+[Postal Code]
+Почтовый индекс
+
+[Comment]
+Комментарий
+
+[Time]
+Время
+
+[Duration]
+Длительность
+
+[Delete Call Log]
+Очистить журнал
+
+[Delete Contact]
+Удалить контакт
+
+[Delete Account]
+Удалить аккаунт
+
+[Are you sure you want to delete?]
+Вы уверены, что хотите удалить?
+
+[Are you sure you want to delete the selected items?]
+Вы уверены, что хотите удалить выбранные элементы?
+
+[Always on Top]
+Поверх всех окон
+
+[Export/Import]
+Экспорт/Импорт
+
+[Export Configuration]
+Экспорт конфигурации
+
+[Import Configuration]
+Импорт конфигурации
+
+[Export Call Log]
+Экспорт журнала вызовов
+
+[Import Call Log]
+Импорт журнала вызовов
+
+[Export Contacts]
+Экспорт контактов
+
+[Import Contacts]
+Импорт контактов
+
+[View Log File]
+Открыть файл журнала
+
+[Visit Website]
+Перейти на сайт
+
+[Help]
+Справка
+
+[Shortcuts]
+Горячие клавиши
+
+[Redial]
+Повтор
+
+[Clear]
+Очистить
+
+[Copy]
+Копировать
+
+[Select All]
+Выделить все
+
+[Blind Transfer]
+Прямой перевод
+
+[Attended Transfer]
+Консультативный перевод
+
+[Merge]
+Объединить
+
+[Merge All]
+Объединить все
+
+[Separate]
+Разделить
+
+[Separate All]
+Разделить все
+
+[Disconnect]
+Отключить
+
+[Answer with Video]
+Ответить с видео
+
+[close window to ignore call]
+закройте окно, чтобы игнорировать вызов
+
+[Video Call]
+Видеовызов
+
+[Message]
+Сообщение
+
+[Last Call]
+Последний вызов
+
+[Close All]
+Закрыть все
+
+[VAD]
+VAD
+
+[EC]
+EC
+
+[Opus 2ch]
+Стерео Opus
+
+[MP3]
+MP3
+
+[WAV]
+WAV
+
+[REC]
+REC
