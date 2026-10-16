@@ -551,3 +551,20 @@ WAV
 
 [REC]
 REC
+[RFC2833]
+RFC2833
+
+[SIP-INFO]
+SIP-INFO
+
+[H.264]
+H.264
+
+[H.263+]
+H.263+
+
+[VP8]
+VP8
+
+[VP9]
+VP9

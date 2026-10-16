@@ -250,6 +250,8 @@ public:
     afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
     afx_msg void OnMove(int x, int y);
     afx_msg void OnSize(UINT type, int w, int h);
+    afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+    afx_msg void OnPaint();
     afx_msg LRESULT onShellHookMessage(WPARAM wParam, LPARAM lParam);
     afx_msg LRESULT onCallAnswer(WPARAM wParam, LPARAM lParam);
     afx_msg LRESULT onCallHangup(WPARAM wParam, LPARAM lParam);

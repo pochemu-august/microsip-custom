@@ -1792,6 +1792,8 @@ BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
     ON_WM_TIMER()
     ON_WM_MOVE()
     ON_WM_SIZE()
+    ON_WM_GETMINMAXINFO()
+    ON_WM_PAINT()
     ON_WM_CLOSE()
     ON_WM_SHOWWINDOW()
     ON_WM_CTLCOLOR()
@@ -1933,69 +1935,38 @@ void CmainDlg::SwitchLanguage(const CString& lang)
 
 void CmainDlg::UpdateLanguageUI()
 {
-    bool isRu = (accountSettings.language.CompareNoCase(_T("ru")) == 0) || (langPack.entryCount > 0);
-
     if (m_mainTab.GetSafeHwnd()) {
-        // CTabCtrl does not re-measure items on SetItem(), so the tabs are rebuilt.
-        // Each tab's lParam holds the page pointer and must be preserved.
         int currentTab = m_mainTab.GetCurSel();
-        int count = m_mainTab.GetItemCount();
-        CArray<LPARAM> params;
-        CStringArray texts;
-        for (int i = 0; i < count; i++) {
-            TCHAR buf[256] = { 0 };
-            TC_ITEM tci = { 0 };
-            tci.mask = TCIF_PARAM | TCIF_TEXT;
-            tci.pszText = buf;
-            tci.cchTextMax = _countof(buf);
-            m_mainTab.GetItem(i, &tci);
-            params.Add(tci.lParam);
-            texts.Add(buf);
-        }
-
-        static const LPCTSTR labelsEn[] = { _T("Phone"), _T("Logs"), _T("Contacts") };
-        static const LPCTSTR labelsRu[] = { _T("Телефон"), _T("Журнал"), _T("Контакты") };
-        for (int i = 0; i < count && i < _countof(labelsEn); i++) {
-            texts[i] = isRu ? labelsRu[i] : labelsEn[i];
-        }
+        if (currentTab < 0) currentTab = 0;
 
         m_mainTab.SetRedraw(FALSE);
         m_mainTab.DeleteAllItems();
-        for (int i = 0; i < count; i++) {
-            TC_ITEM tci = { 0 };
-            tci.mask = TCIF_TEXT | TCIF_PARAM;
-            tci.pszText = (LPTSTR)(LPCTSTR)texts[i];
-            tci.lParam = params[i];
-            m_mainTab.InsertItem(i, &tci);
-        }
+        m_mainTab.InsertItem(0, Translate(_T("Phone")));
+        m_mainTab.InsertItem(1, Translate(_T("Logs")));
+        m_mainTab.InsertItem(2, Translate(_T("Contacts")));
 
-        // Owner-drawn tabs use a fixed item size: make sure the longest label fits.
-        if (count > 0) {
-            CRect rcMap(0, 0, _GLOBAL_TAB_WIDTH, 5);
+        TC_ITEM tci = { 0 };
+        tci.mask = TCIF_PARAM;
+        tci.lParam = (LPARAM)pageDialer;
+        m_mainTab.SetItem(0, &tci);
+        tci.lParam = (LPARAM)pageCalls;
+        m_mainTab.SetItem(1, &tci);
+        tci.lParam = (LPARAM)pageContacts;
+        m_mainTab.SetItem(2, &tci);
+
+        CRect rcClient;
+        m_mainTab.GetClientRect(&rcClient);
+        if (rcClient.Width() > 0) {
+            CRect rcMap(0, 0, 0, 5);
             MapDialogRect(&rcMap);
-            CRect rcWnd;
-            m_mainTab.GetWindowRect(&rcWnd);
-            int itemHeight = rcWnd.Height() - rcMap.bottom;
-            int itemWidth = rcMap.right;
-            CClientDC dc(&m_mainTab);
-            CFont* pFont = m_mainTab.GetFont();
-            CFont* pOldFont = pFont ? dc.SelectObject(pFont) : NULL;
-            for (int i = 0; i < count; i++) {
-                int need = dc.GetTextExtent(texts[i]).cx + 16;
-                if (need > itemWidth) itemWidth = need;
+            int itemWidth = rcClient.Width() / 3;
+            int itemHeight = rcClient.Height() - rcMap.bottom;
+            if (itemWidth > 0 && itemHeight > 0) {
+                m_mainTab.SetItemSize(CSize(itemWidth, itemHeight));
             }
-            if (pOldFont) dc.SelectObject(pOldFont);
-            CRect rcClient;
-            m_mainTab.GetClientRect(&rcClient);
-            if (itemWidth * count > rcClient.Width() && rcClient.Width() > 0) {
-                itemWidth = rcClient.Width() / count;
-            }
-            m_mainTab.SetItemSize(CSize(itemWidth, itemHeight));
         }
 
-        if (currentTab >= 0 && currentTab < count) {
-            m_mainTab.SetCurSel(currentTab);
-        }
+        m_mainTab.SetCurSel(currentTab);
         m_tabPrev = m_mainTab.GetCurSel();
         m_mainTab.SetRedraw(TRUE);
         m_mainTab.Invalidate();
@@ -2293,6 +2264,7 @@ BOOL CmainDlg::OnInitDialog()
     CRect tabRect;
     m_mainTab.m_bCloseable = false;
     m_mainTab.ModifyStyle(WS_BORDER, 0);
+    m_mainTab.SetPadding(CSize(4, 2));
     m_mainTab.GetWindowRect(&tabRect);
 
     ScreenToClient(&tabRect);
@@ -2302,14 +2274,6 @@ BOOL CmainDlg::OnInitDialog()
     MapDialogRect(&lineRect);
     tabRect.top += lineRect.bottom;
     tabRect.bottom += lineRect.bottom;
-    m_mainTab.SetWindowPos(NULL, tabRect.left, tabRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-    tabItem.mask = TCIF_TEXT | TCIF_PARAM;
-    mapRect.right = _GLOBAL_TAB_WIDTH; // tab item width
-    mapRect.bottom = 5; // bottom line height
-    MapDialogRect(&mapRect);
-    CSize size;
-    size.SetSize(mapRect.right, tabRect.Height() - mapRect.bottom);
-    m_mainTab.SetItemSize(size);
 
     m_ButtonMenu.SetIcon(LoadImageIcon(IDI_DROPDOWN));
 
@@ -2318,13 +2282,30 @@ BOOL CmainDlg::OnInitDialog()
         m_ButtonMenu.GetWindowRect(pageRect);
         ScreenToClient(pageRect);
         m_ButtonMenu.SetWindowPos(NULL, pageRect.left + widthAdd, pageRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
-        //--
-        tabRect.right += widthAdd;
-        m_mainTab.SetWindowPos(NULL, 0, 0, tabRect.Width(), tabRect.Height(), SWP_NOZORDER | SWP_NOMOVE);
     }
+
+    CRect menuRect;
+    m_ButtonMenu.GetWindowRect(&menuRect);
+    ScreenToClient(&menuRect);
+
+    // Координаты m_mainTab по ширине должны строго заканчиваться за 2 пикселя до кнопки меню
+    int tabW = (menuRect.left - 2) - tabRect.left;
+    if (tabW < 0) tabW = 0;
+    tabRect.right = tabRect.left + tabW;
+    m_mainTab.SetWindowPos(NULL, tabRect.left, tabRect.top, tabRect.Width(), tabRect.Height(), SWP_NOZORDER);
+
+    tabItem.mask = TCIF_TEXT | TCIF_PARAM;
+    mapRect.right = _GLOBAL_TAB_WIDTH; // tab item width
+    mapRect.bottom = 5; // bottom line height
+    MapDialogRect(&mapRect);
+    CSize size;
+    size.SetSize(mapRect.right, tabRect.Height() - mapRect.bottom);
+    m_mainTab.SetItemSize(size);
 
     AutoMove(m_mainTab.m_hWnd, 0, 0, 100, 0);
     AutoMove(m_ButtonMenu.m_hWnd, 100, 0, 0, 0);
+
+    m_ButtonMenu.BringWindowToTop();
 
     BYTE offset = tabRect.bottom - 1;
 
@@ -2451,6 +2432,39 @@ void CmainDlg::OnShowWindow(BOOL bShow, UINT nStatus)
     CBaseDialog::OnShowWindow(bShow, nStatus);
     if (bShow && notifyUpdate) {
         SetTimer(IDT_TIMER_VERSION, 2000, NULL);
+    }
+}
+
+void CmainDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+    CBaseDialog::OnGetMinMaxInfo(lpMMI);
+    // Гарантируем, что окно нельзя сжать меньше ширины 3 вкладок + кнопки меню
+    int curDpiY = (dpiY > 0) ? dpiY : 96;
+    lpMMI->ptMinTrackSize.x = MulDiv(275, curDpiY, 96);
+    lpMMI->ptMinTrackSize.y = MulDiv(380, curDpiY, 96);
+}
+
+void CmainDlg::OnPaint()
+{
+    if (ThemeManager::Get().IsDark()) {
+        CPaintDC dc(this);
+        CRect clientRect;
+        GetClientRect(&clientRect);
+        dc.FillSolidRect(&clientRect, ThemeManager::COLOR_WINDOW_DARK);
+
+        if (m_mainTab.GetSafeHwnd()) {
+            CRect tabRect;
+            m_mainTab.GetWindowRect(&tabRect);
+            ScreenToClient(&tabRect);
+            int lineY = tabRect.bottom - 1;
+            CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
+            CPen* pOldPen = dc.SelectObject(&pen);
+            dc.MoveTo(clientRect.left, lineY);
+            dc.LineTo(clientRect.right, lineY);
+            dc.SelectObject(pOldPen);
+        }
+    } else {
+        Default();
     }
 }
 

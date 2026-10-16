@@ -647,11 +647,13 @@ void CClosableTabCtrl::OnPaint()
 		DrawItem(&dis);
 	}
 
-	CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
-	CPen* pOldPen = pDC->SelectObject(&pen);
-	pDC->MoveTo(clientRect.left, clientRect.bottom - 1);
-	pDC->LineTo(clientRect.right, clientRect.bottom - 1);
-	pDC->SelectObject(pOldPen);
+	if (clientRect.bottom > 0 && clientRect.right > clientRect.left) {
+		CPen pen(PS_SOLID, 1, ThemeManager::COLOR_BORDER_DARK);
+		CPen* pOldPen = pDC->SelectObject(&pen);
+		pDC->MoveTo(clientRect.left, clientRect.bottom - 1);
+		pDC->LineTo(clientRect.right, clientRect.bottom - 1);
+		pDC->SelectObject(pOldPen);
+	}
 
 	if (pOldFont)
 		pDC->SelectObject(pOldFont);

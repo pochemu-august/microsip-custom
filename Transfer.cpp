@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (C) 2011-2026 MicroSIP (http://www.microsip.org)
  *
  * This program is free software; you can redistribute it and/or modify
@@ -136,10 +136,10 @@ void Transfer::LoadFromContacts(Contact *selectedContact)
                 CString& type = itemsType[j];
                 CString str;
                 if (type.IsEmpty()) {
-                    str.Format(_T("%s – %s"), contact->name, number);
+                    str.Format(_T("%s ï¿½ %s"), contact->name, number);
                 }
                 else {
-                    str.Format(_T("%s – %s %s"), contact->name, type, number);
+                    str.Format(_T("%s ï¿½ %s %s"), contact->name, type, number);
                 }
                 int n = combobox->AddString(str);
                 CString* pNumber = new CString(number);
